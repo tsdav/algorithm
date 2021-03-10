@@ -12,6 +12,12 @@ class User extends Authenticatable
 {
     use HasApiTokens;
     use HasFactory, Notifiable;
+    protected $table = 'users';
+
+    protected $primaryKey = 'id';
+    public function role(){
+        return $this->belongsTo(roles::class);
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +28,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id'
     ];
 
     /**
