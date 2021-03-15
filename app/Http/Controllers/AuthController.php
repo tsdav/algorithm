@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Requests\RegisterValidateRequest;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -9,28 +11,31 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request): \Illuminate\Http\JsonResponse
+    public function register(RegisterValidateRequest $request): UserResource
     {
-        $validatedData = $request->validate([
-            'name'=>'required|string|max:255',
-            'email'=>'required|string|email|max:255|unique:users',
-            'password'=>'required|string|',
-        ]);
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'role_id' => $request['role_id'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
-        ]);
+
+        $validatedData = $request->validated();
+
+        $user = new User();
+
+        $user->name = $validatedData['name'];
+        $user->role_id = $request['role_id'];
+        $user->email = $validatedData['email'];
+        $user->password = Hash::make($validatedData['password']);
+
+        $user->save();
+
         $token=$user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'message'=>'You have registered'
-        ]);
+        $data = [
+          'token' => $token,
+          'token-type' => 'bearer'
+        ];
+
+        return UserResource::make($user)->additional($data);
     }
-    public function login(Request $request): \Illuminate\Http\JsonResponse
+
+    public function login(Request $request)
     {
         $password = $request['password'];
 
@@ -48,13 +53,13 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $role = User::find($user->id)->role->role_name;
-        return response()->json([
+        $data = [
+            'message'=>'You have logged in successfully',
             'access_token' => $token,
-            'token_type' => 'Bearer',
-            'role_is' => $role,
-            'message'=>'You have logged in successfully'
-        ]);
+            'token_type' => 'Bearer'
+        ];
+
+        return UserResource::make($user)->additional($data);
 
     }
     public function me(Request $request){

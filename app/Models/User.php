@@ -15,7 +15,9 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $primaryKey = 'id';
-    public function role(){
+
+    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
         return $this->belongsTo(roles::class);
     }
 
@@ -49,4 +51,31 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Relation of user-product(many-to-many)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function product(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Products::class,'user_product','user_id','product_id');
+    }
+
+    public function setNameAttribute($value){
+        $this->attributes['name'] = $value;
+    }
+
+    public function setPriceAttribute($value){
+        $this->attributes['email'] = $value;
+    }
+
+    public function setRoleIdAttribute($value){
+        $this->attributes['role_id'] = $value;
+    }
+
+    public function setPasswordAttribute($value){
+        $this->attributes['password'] = $value;
+    }
+
 }
